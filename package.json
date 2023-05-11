@@ -1,0 +1,27 @@
+{
+  "name": "master-the-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/animeshpandeyit/Master-the-BACKEND.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/animeshpandeyit/Master-the-BACKEND/issues"
+  },
+  "homepage": "https://github.com/animeshpandeyit/Master-the-BACKEND#readme",
+  "dependencies": {
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "mongoose": "^7.1.1"
+  }
+}
