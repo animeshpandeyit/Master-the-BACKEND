@@ -5,6 +5,7 @@ import { connect } from "net";
 import { error } from "console";
 import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 const app = express();
 
 mongoose
@@ -27,6 +28,7 @@ const messagesSchema = new Schema({
 const userSchema = new Schema({
   name: "String",
   email: "String",
+  password: "String",
 });
 
 const Messge = mongoose.model("message", messagesSchema, "messages");
@@ -46,93 +48,63 @@ const isAuthenticated = async (req, res, next) => {
   if (token) {
     const decoded = jwt.verify(token, "animeshisnawab");
     console.log(decoded);
-    /* `req.user = await User.findById(decoded._id);` is finding a user in the database with the `_id`
-    value decoded from the JWT token and assigning it to the `user` property of the `req` object.
-    This allows the user's information to be accessed and used in subsequent middleware or routes. */
     req.user = await User.findById(decoded._id);
     next();
   } else {
-    res.render("login");
+    res.redirect("/login");
   }
 };
 
 app.get("/", isAuthenticated, (req, res) => {
-  // res.render("login", { name: "pandey" });
-  // console.log(req.cookies.token);
-  // const token = req.cookies.token;
-  // or
-  // const { token } = req.cookies;
-  // if (token) {
-  //   res.render("logout");
-  // } else {
-  //   res.render("login");
-  // }
   console.log("::", req.user);
   res.render("logout", { name: req.user.name });
 });
 
-// app.get("/success", (req, res) => {
-//   res.render("success");
-//   console.log(users);
-// });
+app.get("/register", (req, res) => {
+  res.render("register");
+});
 
-// app.post("/contact", async (req, res) => {
-//   // console.log(req.body);
-//   // users.push({ username: req.body.name, email: req.body.email });
-
-//   // const messageData = { username: req.body.name, email: req.body.email };
-//   // console.log(messageData);
-//   // res.render("success");
-//   // await Messge.create(messageData)
-
-//   /* `const { name, email } = req.body;` is destructuring the `req.body` object and assigning the
-//   values of its properties `name` and `email` to the variables `name` and `email` respectively. This
-//   is a shorthand way of accessing the properties of an object in JavaScript. */
-//   const { name, email } = req.body;
-//   await Messge.create({ name: name, email: email });
-//   res.redirect("/success");
-// });
-
-// app.get("/users", (req, res) => {
-//   res.json(users);
-// });
-
-// app.get("/add", (req, res) => {
-//   Messge.create({ name: "abc", email: "abc@gmail.com" })
-//     .then(() => {
-//       res.send("Nice");
-//     })
-//     .catch((err) => {
-//       console.log(err);
-//     });
-// });
-
-// app.get("/add", async (req, res) => {
-//   await Messge.create({ name: "abc2", email: "abc2@gmail.com" })
-//     .then(() => {
-//       res.send("Nice");
-//     })
-//     .catch((err) => {
-//       console.log(err);
-//     });
-// });
-
-app.post("/login", async (req, res) => {
-  console.log(req.body);
-  const { name, email } = req.body;
-
-  const user = await User.findOne({email});
-
-  if (!user) {
-   return console.log("register failed");
+app.post("/register", async (req, res) => {
+  const { name, email, password } = req.body;
+  const user = await User.findOne({ email });
+  if (user) {
+    return res.redirect("/login");
   }
 
+  const hashpassword = await bcrypt.hash(password, 10);
   const userId = await User.create({
     name: name,
     email: email,
+    password: hashpassword,
   });
 
   const token = jwt.sign({ _id: userId._id }, "animeshisnawab");
+  console.log(token);
+  // res.cookie("token", userId._id, {
+  res.cookie("token", token, {
+    httpOnly: true,
+    expires: new Date(Date.now() + 60 * 1000),
+  });
+  res.redirect("/");
+});
+
+app.get("/login", async (req, res) => {
+  res.render("login");
+});
+
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.redirect("/register");
+  }
+  // const ismatch = user.password === password;
+  const ismatch = await bcrypt.compare(password, user.password);
+
+  if (!ismatch) {
+    return res.render("login", { email, mismatch: "password mismatch" });
+  }
+  const token = jwt.sign({ _id: user._id }, "animeshisnawab");
   console.log(token);
   // res.cookie("token", userId._id, {
   res.cookie("token", token, {
@@ -149,8 +121,6 @@ app.get("/logout", async (req, res) => {
   });
   res.redirect("/");
 });
-
-// app.post("/login", async (req, res) => {});
 
 app.listen(5000, () => {
   console.log("Server is Running...");

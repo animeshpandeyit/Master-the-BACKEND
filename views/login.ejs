@@ -10,8 +10,15 @@
     <main>
       <form action="/login" method="post">
         <h1>Login Now</h1>
-        <input type="text" name="name" placeholder="name" />
-        <input type="email" name="email" placeholder="email" />
+        <!-- <input type="text" name="name" placeholder="name" /> -->
+        <input
+          type="email"
+          name="email"
+          placeholder="email"
+          value="<%= locals.email %>"
+        />
+        <input type="password" name="password" placeholder="password" />
+        <p><%= locals.mismatch %></p>
         <button type="submit">Login</button>
       </form>
     </main>
