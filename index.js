@@ -1,7 +1,6 @@
 import express from "express";
 import path from "path";
 import mongoose, { Mongoose } from "mongoose";
-import { connect } from "net";
 import { error } from "console";
 import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
@@ -40,9 +39,9 @@ const users = [];
 app.use(express.static(path.join(path.resolve(), "public")));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-
 app.set("view engine", "ejs");
 
+// isAuthenticated
 const isAuthenticated = async (req, res, next) => {
   const { token } = req.cookies;
   if (token) {
